@@ -5,7 +5,7 @@ import { exportAvatar } from './dist/meshbaker.es.js';
 import { loadGltf } from 'node-three-gltf';
 
 // step one: import 0.glb from '0.glb' in the current working directory using three.js in node.js
-const gltf = await loadGltf('./body1.glb');
+const gltf = await loadGltf('./clonex.glb');
 
 // resize all of the textures in the gltf to 1024x1024
 // gltf.scene.traverse(function (node) {
