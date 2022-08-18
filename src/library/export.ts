@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
+import { GLTFExporter } from "./GLTFExporter.js";
 import { findChildrenByType, findChildByName, describeObject3D } from "./utils";
 import { combine } from "./mesh-combination";
 import debugConfig from "./debug-config";
@@ -54,7 +54,7 @@ export const exportGLTF = (function () {
   const exporter = new GLTFExporter();
   return (object3D, { binary, animations }) => {
     return new Promise((resolve) => {
-      exporter.parse(object3D, (gltf) => resolve({ gltf }), (error) => {console.log('error', error)}, { binary, animations });
+      exporter.parse(object3D, (gltf) => resolve({ gltf }), { binary, animations });
     });
   };
 })();
@@ -91,11 +91,13 @@ function cloneIntoAvatar(avatarGroup) {
   }
 
   // Combine the "AvatarRoot" nodes
-  const avatarRoots = avatarGroup.children
+  let avatarRoots = avatarGroup.children
     .map((o) => {
-      return findChildByName(o, "AvatarRoot") || findChildByName(o, "Avatar");
+      console.log('reading', o.name)
+      return findChildByName(o, "AvatarRoot") || findChildByName(o, "Avatar") || findChildByName(o, "Armature");
     })
     .filter((o) => !!o);
+    if(!avatarRoots[0]) avatarRoots = avatarGroup.children
   const clonedAvatarRoot = avatarRoots[0].clone(false);
   for (const avatarRoot of avatarRoots) {
     clonedAvatarRoot.userData = combineHubsComponents(clonedAvatarRoot.userData, avatarRoot.userData);
@@ -135,6 +137,6 @@ export async function exportAvatar(avatarGroup) {
     console.log("gltf", gltf);
   }
 
-  const { gltf: glb } = await exportGLTF(avatar, { binary: true, animations: avatar.animations }) as any;
+  const { gltf: glb } = await exportGLTF(avatar, { binary: false, animations: avatar.animations }) as any;
   return { glb };
 }

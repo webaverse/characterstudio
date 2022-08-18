@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import fs from 'fs';
-import { exportAvatar } from './dist/meshbaker.es.js';
+import { exportAvatar } from './dist/index.js';
 
 import { loadGltf } from 'node-three-gltf';
 

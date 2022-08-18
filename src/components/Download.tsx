@@ -36,7 +36,7 @@ const closePopup = {
 
 export default function DownloadCharacter({ scene, templateInfo, model, downloadPopup, setDownloadPopup }) {
   const downloadModel = (format: any) => {
-    download(model, `CC_Model_${templateInfo.name.replace(" ", "_")}`, format, false);
+    download(model, `CC_Model_${templateInfo.name.replace(" ", "_")}`, format);
   };
   const handleOpen = () => {
     setDownloadPopup(true);

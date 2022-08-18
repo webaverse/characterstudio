@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from "@mui/material"
 import { VRM, VRMSchema } from "@pixiv/three-vrm"
 import React, { Suspense, useState, useEffect, Fragment } from "react"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import DownloadCharacter from "./Download"
 import LoadingOverlayCircularStatic from "./LoadingOverlay"
 import { setAvatarTraits, setAvatarModel } from "./scene-utils"

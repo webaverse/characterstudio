@@ -1,9 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
+import { GLTFExporter } from "../library/GLTFExporter.js";
 import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter";
-import { Buffer } from "buffer";
-import html2canvas from "html2canvas";
 import { VRM } from "@pixiv/three-vrm";
 import VRMExporter from "../library/VRM/VRMExporter";
 import { Canvas } from "@react-three/fiber";
@@ -47,7 +45,7 @@ export async function getModelFromScene(format = 'glb') {
       maxTextureSize: 1024 || Infinity
     }
     console.log("Scene is", scene);
-    const glb: any = await new Promise((resolve) => exporter.parse(scene, resolve, (error) => console.error("Error getting model", error), options))
+    const glb: any = await new Promise((resolve) => exporter.parse(scene, resolve, options))
     return new Blob([glb], { type: 'model/gltf-binary' })
   } else if (format && format === 'vrm') {
     const exporter = new VRMExporter();
@@ -57,9 +55,6 @@ export async function getModelFromScene(format = 'glb') {
   } else {
     return console.error("Invalid format");
   }
-}
-export async function getScreenShot() {
-  return await getScreenShotByElementId("editor-scene")
 }
 
 export async function getObjectValue(target: any, scene: any, value: any) {
@@ -153,88 +148,86 @@ export async function updatePose(name: any, value: any, axis: any, scene: any) {
   }
 }
 
-// export async function download(
-//   model: any,
-//   fileName: any,
-//   format: any,
-//   screenshot: any
-// ) {
-//   // We can use the SaveAs() from file-saver, but as I reviewed a few solutions for saving files,
-//   // this approach is more cross browser/version tested then the other solutions and doesn't require a plugin.
-//   const link = document.createElement("a");
-//   link.style.display = "none";
-//   document.body.appendChild(link);
-//   function save(blob, filename) {
-//     link.href = URL.createObjectURL(blob);
-//     link.download = filename;
-//     link.click();
-//   }
+export async function download(
+  model: any,
+  fileName: any,
+  format: any
+) {
+  // We can use the SaveAs() from file-saver, but as I reviewed a few solutions for saving files,
+  // this approach is more cross browser/version tested then the other solutions and doesn't require a plugin.
+  const link = document.createElement("a");
+  link.style.display = "none";
+  document.body.appendChild(link);
+  function save(blob, filename) {
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  }
 
-//   function saveString(text, filename) {
-//     save(new Blob([text], { type: "text/plain" }), filename);
-//   }
+  function saveString(text, filename) {
+    save(new Blob([text], { type: "text/plain" }), filename);
+  }
 
-//   function saveArrayBuffer(buffer, filename) {
-//     save(new Blob([buffer], { type: "application/octet-stream" }), filename);
-//   }
-//   function saveArrayBufferVRM(vrm, filename) {
-//     save(new Blob([vrm], { type: "octet/stream" }), filename);
-//   }
+  function saveArrayBuffer(buffer, filename) {
+    save(new Blob([buffer], { type: "application/octet-stream" }), filename);
+  }
+  function saveArrayBufferVRM(vrm, filename) {
+    save(new Blob([vrm], { type: "octet/stream" }), filename);
+  }
 
-//     // Specifying the name of the downloadable model
-//   const downloadFileName = `${
-//     fileName && fileName !== "" ? fileName : "AvatarCreatorModel"
-//   }`;
+    // Specifying the name of the downloadable model
+  const downloadFileName = `${
+    fileName && fileName !== "" ? fileName : "AvatarCreatorModel"
+  }`;
 
-//   if (format && format === "gltf/glb") {
-//     const exporter = new GLTFExporter();
-//     var options = {
-//       trs: false,
-//       onlyVisible: false,
-//       truncateDrawRange: true,
-//       binary: true,
-//       forcePowerOfTwoTextures: false,
-//       maxTextureSize: 1024 || Infinity
-//     };
-//     const avatar = await combine({ avatar: model.scene });
+  if (format && format === "gltf/glb") {
+    const exporter = new GLTFExporter();
+    var options = {
+      trs: false,
+      onlyVisible: false,
+      truncateDrawRange: true,
+      binary: true,
+      forcePowerOfTwoTextures: false,
+      maxTextureSize: 1024 || Infinity
+    };
+    const avatar = await combine({ avatar: model.scene });
 
-//     exporter.parse(
-//       avatar,
-//       function (result) {
-//         if (result instanceof ArrayBuffer) {
-//           console.log(result);
-//           saveArrayBuffer(result, `${downloadFileName}.glb`);
-//         } else {
-//           var output = JSON.stringify(result, null, 2);
-//           saveString(output, `${downloadFileName}.gltf`);
-//         }
-//       },
-//       (error) => { console.error("Error parsing")},
-//       options
-//     );
-//   } else if (format && format === "obj") {
-//     const exporter = new OBJExporter();
-//     saveArrayBuffer(exporter.parse(model.scene), `${downloadFileName}.obj`);
-//   } else if (format && format === "vrm") {
-//     const exporter = new VRMExporter();
-//     const clonedScene = model.scene.clone();
+    exporter.parse(
+      avatar,
+      function (result) {
+        if (result instanceof ArrayBuffer) {
+          console.log(result);
+          saveArrayBuffer(result, `${downloadFileName}.glb`);
+        } else {
+          var output = JSON.stringify(result, null, 2);
+          saveString(output, `${downloadFileName}.gltf`);
+        }
+      },
+      options
+    );
+  } else if (format && format === "obj") {
+    const exporter = new OBJExporter();
+    saveArrayBuffer(exporter.parse(model.scene), `${downloadFileName}.obj`);
+  } else if (format && format === "vrm") {
+    const exporter = new VRMExporter();
+    const clonedScene = model.scene.clone();
 
-//     const avatar = await combine({ avatar: clonedScene });
+    const avatar = await combine({ avatar: clonedScene });
     
-//     var scene = model.scene;
-//     var clonedSecondary;
-//     scene.traverse((child) =>{
-//       if(child.name == 'secondary'){
-//         clonedSecondary = child.clone();
-//       }
-//     })
+    var scene = model.scene;
+    var clonedSecondary;
+    scene.traverse((child) =>{
+      if(child.name == 'secondary'){
+        clonedSecondary = child.clone();
+      }
+    })
 
-//     avatar.add(clonedSecondary);
-//     exporter.parse(model, avatar, (vrm : ArrayBuffer) => {
-//       saveArrayBufferVRM(vrm, `${downloadFileName}.vrm`);
-//     });
-//   }
-// }
+    avatar.add(clonedSecondary);
+    exporter.parse(model, avatar, (vrm : ArrayBuffer) => {
+      saveArrayBufferVRM(vrm, `${downloadFileName}.vrm`);
+    });
+  }
+}
 
 export function addNonDuplicateAnimationClips(clone, scene) {
   const clipsToAdd = [];
@@ -303,15 +296,12 @@ export function cloneSkeleton(skinnedMesh) {
 export default {
   loadModel,
   updatePose,
+  download,
   updateMorphValue,
   getMorphValue,
-  download,
   getMesh,
   setMaterialColor,
   getObjectValue,
-  saveScreenShotByElementId,
-  getScreenShot,
-  getScreenShotByElementId,
   getModelFromScene,
   getTraits,
   setAvatarTraits,

@@ -1,11 +1,9 @@
 import * as THREE from "three";
 import debugConfig from "./debug-config";
-import { createCanvas } from 'canvas';
+import { createCanvas, createImageData } from 'canvas';
 
 function createContext({ width, height }) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  const canvas = createCanvas(width, height);
   const context = canvas.getContext("2d");
   context.fillStyle = "white";
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -26,7 +24,7 @@ export const createTextureAtlas = (function () {
       IMAGE_NAMES.map((name) => [name, createContext({ width: ATLAS_SIZE_PX, height: ATLAS_SIZE_PX })])
     );
 
-    if (debugConfig.debugCanvases) {
+    if (typeof document !== 'undefined' && debugConfig.debugCanvases) {
       const previous = document.getElementById("debug-canvases");
       if (previous) {
         previous.parentNode.removeChild(previous);
@@ -60,10 +58,15 @@ export const createTextureAtlas = (function () {
       const context = contexts["diffuse"];
       meshes.forEach((mesh) => {
         const image = getTextureImage(mesh.material, "map");
+        console.log('image is', image)
+        // image.data is a buffer
+        // convert it to an Image
         const { min, max } = uvs.get(mesh) as any;
         if (image) {
           context.globalCompositeOperation = "source-over";
-          context.drawImage(image, min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, tileSize, tileSize);
+          // create a new Uint8ClampedArray from the image.data Buffer object
+          const imageDataBuffer = Uint8ClampedArray.from(image.data);
+          context.putImageData(createImageData(imageDataBuffer, image.width, image.height), min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX);
         }
 
         context.globalCompositeOperation = image ? "multiply" : "source-over";
@@ -84,7 +87,8 @@ export const createTextureAtlas = (function () {
         const image = getTextureImage(mesh.material, "normalMap");
         const { min, max } = uvs.get(mesh) as any;
         if (image) {
-          context.drawImage(image, min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, tileSize, tileSize);
+          const imageDataBuffer = Uint8ClampedArray.from(image.data);
+          context.putImageData(createImageData(imageDataBuffer, image.width, image.height), min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX);
         } else {
           context.fillStyle = "#8080ff"; // default color encodes the vector (0,0,1)
           context.fillRect(min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, tileSize, tileSize);
@@ -105,8 +109,9 @@ export const createTextureAtlas = (function () {
           const { min, max } = uvs.get(mesh) as any;
           if (image) {
             context.globalCompositeOperation = "source-over";
-            context.drawImage(image, min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, tileSize, tileSize);
-          }
+            const imageDataBuffer = Uint8ClampedArray.from(image.data);
+            context.putImageData(createImageData(imageDataBuffer, image.width, image.height), min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX);
+                    }
 
           context.globalCompositeOperation = image ? "multiply" : "source-over";
           const color = new THREE.Color(material.aoMapIntensity, material.roughness, material.metalness);
