@@ -4,6 +4,9 @@ function lerp(t, min, max, newMin, newMax) {
 }
 
 export function remapUVs({ mesh, uvs }) {
+  console.log('remapUVs', mesh, uvs);
+
+
   // TODO: Should we mutate the existing geometry instead?
   // What is the appropriate contract between this function and
   // its calling context?

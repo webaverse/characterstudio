@@ -26,7 +26,6 @@ import {
   OutputVRM,
   OutputSecondaryAnimation,
 } from "./OutputVRMInterfaces";
-import { createCanvas } from "canvas";
 
 // WebGL(OpenGL)マクロ定数
 enum WEBGL_CONST {
@@ -227,7 +226,7 @@ export default class VRMExporter {
         mesh.morphTargetDictionary = {};
         mesh.morphTargetInfluences = [];
         mesh.geometry.morphAttributes = {};
-        mesh.updateMorphTargets();
+        // mesh.updateMorphTargets();
         // throw new Error(mesh.name + " morphTargetDictionary is null");
       }
       const morphIndexPair = Object.entries(mesh.morphTargetDictionary);
@@ -484,6 +483,23 @@ export default class VRMExporter {
         type: MeshDataType.IMAGE,
       });
 
+    /* png画像として書き出しのテスト
+        images.forEach((image, index) => {
+            const fileName = "test"+index.toString()+".png";
+            const canvas = document.createElement("canvas");
+            canvas.width = image.imageBitmap.width;
+            canvas.height = image.imageBitmap.height;
+            canvas.getContext('2d').drawImage(image.imageBitmap, 0, 0);
+            canvas.toBlob((blob) =>{
+                console.log(blob);
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                // link.click();
+            }, "image/png", 1.0);
+        });
+        */
+
     let bufferOffset = 0;
     let imageIndex = 0;
     let accessorIndex = 0;
@@ -581,12 +597,11 @@ function getNodes(parentNode: Object3D | Bone): Array<Object3D | Bone> {
 }
 
 function imageBitmap2png(image: ImageBitmap) {
-  
-  const canvas = createCanvas(image.width, image.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   canvas.getContext("2d")!.drawImage(image, 0, 0);
-
-  // rewrite the above code using node.js and buffer. you cannot use the canvas object anymore.
-
   const pngUrl = canvas.toDataURL("image/png");
   const data = atob(pngUrl.split(",")[1]);
   const array = new ArrayBuffer(data.length);

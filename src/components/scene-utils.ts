@@ -1,12 +1,9 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { GLTFExporter } from "../library/GLTFExporter.js";
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter";
 import { VRM } from "@pixiv/three-vrm";
 import VRMExporter from "../library/VRM/VRMExporter";
-import { Canvas } from "@react-three/fiber";
-
-import { findChildrenByType, findChildByName, describeObject3D } from "../library/utils";
 import { combine } from "../library/mesh-combination";
 
 // import VRMExporter from "../library/VRM/vrm-exporter";
@@ -45,7 +42,7 @@ export async function getModelFromScene(format = 'glb') {
       maxTextureSize: 1024 || Infinity
     }
     console.log("Scene is", scene);
-    const glb: any = await new Promise((resolve) => exporter.parse(scene, resolve, options))
+    const glb: any = await new Promise((resolve) => exporter.parse(scene, resolve, (error) => console.error("Error getting model", error), options))
     return new Blob([glb], { type: 'model/gltf-binary' })
   } else if (format && format === 'vrm') {
     const exporter = new VRMExporter();
@@ -171,6 +168,7 @@ export async function download(
   function saveArrayBuffer(buffer, filename) {
     save(new Blob([buffer], { type: "application/octet-stream" }), filename);
   }
+  let exportedAvatar = null;
   function saveArrayBufferVRM(vrm, filename) {
     save(new Blob([vrm], { type: "octet/stream" }), filename);
   }
@@ -190,7 +188,20 @@ export async function download(
       forcePowerOfTwoTextures: false,
       maxTextureSize: 1024 || Infinity
     };
+    console.log('glb')
     const avatar = await combine({ avatar: model.scene });
+    console.log('exported avatar is')
+    console.log(avatar)
+
+  // add avatar to scene
+      if(exportedAvatar) {
+        exportedAvatar.parent.remove(exportedAvatar);
+      }
+      exportedAvatar = avatar;
+      console.log('model.scene is', model.scene)
+      model.scene.add(avatar);
+      avatar.position.set(-.5, 0, 0)
+      console.log('model.scene is', model.scene)
 
     exporter.parse(
       avatar,
@@ -203,6 +214,7 @@ export async function download(
           saveString(output, `${downloadFileName}.gltf`);
         }
       },
+      (error) => { console.error("Error parsing", error)},
       options
     );
   } else if (format && format === "obj") {
@@ -288,10 +300,6 @@ export function cloneSkeleton(skinnedMesh) {
   });
   return new THREE.Skeleton(skinnedMesh.skeleton.bones.map((b) => boneClones.get(b)));
 }
-
-
-
-
 
 export default {
   loadModel,

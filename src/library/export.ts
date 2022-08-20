@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFExporter } from "./GLTFExporter.js";
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { findChildrenByType, findChildByName, describeObject3D } from "./utils";
 import { combine } from "./mesh-combination";
 import debugConfig from "./debug-config";
@@ -54,7 +54,7 @@ export const exportGLTF = (function () {
   const exporter = new GLTFExporter();
   return (object3D, { binary, animations }) => {
     return new Promise((resolve) => {
-      exporter.parse(object3D, (gltf) => resolve({ gltf }), { binary, animations });
+      exporter.parse(object3D, (gltf) => resolve({ gltf }), (error) => {console.log('error', error)}, { binary, animations });
     });
   };
 })();
@@ -119,24 +119,4 @@ function cloneIntoAvatar(avatarGroup) {
     clonedAvatarRoot.add(skinnedMesh);
   }
   return clonedScene;
-}
-
-export async function exportAvatar(avatarGroup) {
-  // TODO: Re-evaluate whether we want to perform this step.
-  // The intention (for now) is to make combination optional,
-  // so that it is easy to debug and also if non-mergable meshes
-  // are added, there's a workaround for them.
-  const clone = cloneIntoAvatar(avatarGroup);
-  console.log(clone)
-
-  const avatar = await combine({ avatar: clone });
-
-  if (debugConfig.debugGLTF) {
-    console.log("avatar", avatar);
-    const { gltf } = await exportGLTF(avatar, { binary: false, animations: avatar.animations })as any;
-    console.log("gltf", gltf);
-  }
-
-  const { gltf: glb } = await exportGLTF(avatar, { binary: false, animations: avatar.animations }) as any;
-  return { glb };
 }

@@ -3,8 +3,7 @@ import * as THREE from "three";
 
 export function BaseModel(props: any) {
   const { nodes, scene }: any = props;
-  const models =
-    nodes &&
+  const models = nodes &&
     Object.keys(nodes).map((keyName, i) => {
       if (nodes[keyName]) {
         return (

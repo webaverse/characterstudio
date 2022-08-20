@@ -50,7 +50,7 @@ esbuild
         platform: 'node',
         format: 'esm',
         target: ['node16'],
-        external: ['skia-canvas', 'canvas', 'three'],
+        external: ['three'],
         plugins: [nativeNodeModulesPlugin],
     })
     .catch(() => process.exit(1));

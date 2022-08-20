@@ -32,7 +32,6 @@
  const innerHeight = window.innerHeight;
  const DeviceOrientationEvent = window.DeviceOrientationEvent;
  const orientation = window.orientation;
- const addEventListener = window.addEventListener;
  const removeEventListener = window.removeEventListener;
  const focus = window.focus;
  const pageXOffset = window.pageXOffset;
@@ -1078,7 +1077,7 @@ GLTFExporter.prototype = {
 			}
 
 			if ( material.isMeshStandardMaterial ) {
-
+				material.wireframe = true;
 				gltfMaterial.pbrMetallicRoughness.metallicFactor = material.metalness;
 				gltfMaterial.pbrMetallicRoughness.roughnessFactor = material.roughness;
 
@@ -1378,6 +1377,7 @@ GLTFExporter.prototype = {
 
 				// JOINTS_0 must be UNSIGNED_BYTE or UNSIGNED_SHORT.
 				modifiedAttribute = null;
+				console.log('attribute.array', attribute.array)
 				var array = attribute.array;
 				if ( attributeName === 'JOINTS_0' &&
 					! ( array instanceof Uint16Array ) &&
