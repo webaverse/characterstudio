@@ -150,7 +150,8 @@ export async function updatePose(name: any, value: any, axis: any, scene: any) {
 export async function download(
   model: any,
   fileName: any,
-  format: any
+  format: any,
+  atlasSize = 4096
 ) {
   // We can use the SaveAs() from file-saver, but as I reviewed a few solutions for saving files,
   // this approach is more cross browser/version tested then the other solutions and doesn't require a plugin.
@@ -189,7 +190,7 @@ export async function download(
       forcePowerOfTwoTextures: false,
       maxTextureSize: 1024 || Infinity
     };
-    const avatar = await combine({ avatar: model.scene });
+    const avatar = await combine({ avatar: model.scene.clone(), atlasSize });
 
     exporter.parse(
       avatar,
@@ -202,7 +203,7 @@ export async function download(
           saveString(output, `${downloadFileName}.gltf`);
         }
       },
-      (error) => { console.error("Error parsing")},
+      (error) => { console.error("Error parsing", error)},
       options
     );
   } else if (format && format === "obj") {
@@ -212,7 +213,7 @@ export async function download(
     const exporter = new VRMExporter();
     const clonedScene = model.scene.clone();
 
-    const avatar = await combine({ avatar: clonedScene });
+    const avatar = await combine({ avatar: clonedScene, atlasSize });
     
     var scene = model.scene;
     var clonedSecondary;

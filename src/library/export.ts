@@ -119,22 +119,21 @@ function cloneIntoAvatar(avatarGroup) {
   return clonedScene;
 }
 
-export async function exportAvatar(avatarGroup) {
+export async function exportAvatar({avatar, atlasSize = 4096}) {
   // TODO: Re-evaluate whether we want to perform this step.
   // The intention (for now) is to make combination optional,
   // so that it is easy to debug and also if non-mergable meshes
   // are added, there's a workaround for them.
-  const clone = cloneIntoAvatar(avatarGroup);
-  console.log(clone)
+  const clone = cloneIntoAvatar(avatar);
 
-  const avatar = await combine({ avatar: clone });
+  const combinedAvatar = await combine({ avatar: clone, atlasSize });
 
   if (debugConfig.debugGLTF) {
-    console.log("avatar", avatar);
-    const { gltf } = await exportGLTF(avatar, { binary: false, animations: avatar.animations })as any;
+    console.log("avatar", combinedAvatar);
+    const { gltf } = await exportGLTF(combinedAvatar, { binary: false, animations: combinedAvatar.animations })as any;
     console.log("gltf", gltf);
   }
 
-  const { gltf: glb } = await exportGLTF(avatar, { binary: true, animations: avatar.animations }) as any;
+  const { gltf: glb } = await exportGLTF(combinedAvatar, { binary: true, animations: combinedAvatar.animations }) as any;
   return { glb };
 }

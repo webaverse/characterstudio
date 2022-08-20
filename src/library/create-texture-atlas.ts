@@ -2,6 +2,7 @@ import * as THREE from "three";
 import debugConfig from "./debug-config";
 import { createCanvas } from 'canvas';
 import { mergeGeometry } from "./merge-geometry";
+import { SkinnedMesh } from "three";
 
 function createContext({ width, height }) {
   const canvas = document.createElement("canvas");
@@ -23,8 +24,8 @@ function lerp(t, min, max, newMin, newMax) {
   return newMin + progress * (newMax - newMin);
 }
 
-export const createTextureAtlas = async ({ meshes }) => {
-  const ATLAS_SIZE_PX = 256;
+export const createTextureAtlas = async ({ meshes, atlasSize = 4096 }) => {
+  const ATLAS_SIZE_PX = atlasSize;
   const IMAGE_NAMES = ["diffuse", "normal", "orm"];
 
     const bakeObjects = [];
@@ -35,16 +36,17 @@ export const createTextureAtlas = async ({ meshes }) => {
       let bakeObject = bakeObjects.find((bakeObject) => bakeObject.material === material);
       if (!bakeObject) bakeObjects.push({ material, mesh });
       else {
+        
       const { source, dest } = mergeGeometry({ meshes: [bakeObject.mesh, mesh] });
 
+      
+      bakeObject.mesh.geometry = dest;
       // console.log('meshes[0]')
       // console.log(meshes[0]);
       // console.log('source')
       // console.log(source);
       // console.log('dest')
       // console.log(dest);
-      bakeObject.mesh = mesh.clone();
-      bakeObject.mesh.geometry = dest;      
       console.log('baked new geometry', bakeObject);
       }
     });
@@ -79,7 +81,7 @@ export const createTextureAtlas = async ({ meshes }) => {
     const numTiles = Math.floor(Math.sqrt(meshes.length) + 1);
     const tileSize = ATLAS_SIZE_PX / numTiles;
 
-    const uvs = new Map(
+    const originalUVs = new Map(
       bakeObjects.map((bakeObject, i) => {
         const min = new THREE.Vector2(i % numTiles, Math.floor(i / numTiles)).multiplyScalar(1 / numTiles);
         const max = new THREE.Vector2(min.x + 1 / numTiles, min.y + 1 / numTiles);
@@ -97,7 +99,7 @@ export const createTextureAtlas = async ({ meshes }) => {
     const uvBoundsMax = [];
 
     bakeObjects.forEach((bakeObject) => {
-      const { min, max } = uvs.get(bakeObject.mesh) as any;
+      const { min, max } = originalUVs.get(bakeObject.mesh) as any;
       uvBoundsMax.push(max);
       uvBoundsMin.push(min);
     });
@@ -120,6 +122,17 @@ export const createTextureAtlas = async ({ meshes }) => {
     const xTileSize = tileSize * xScaleFactor;
     const yTileSize = tileSize * yScaleFactor;
 
+      const uvs = new Map(
+         bakeObjects.map((bakeObject, i) => {
+          let { min, max } = originalUVs.get(bakeObject.mesh) as any;
+          min.x = min.x * xScaleFactor;
+          min.y = min.y * yScaleFactor;
+          max.x = max.x * xScaleFactor;
+          max.y = max.y * yScaleFactor;
+          return [bakeObject.mesh, { min, max }];
+        })
+      );
+
     bakeObjects.forEach((bakeObject) => {
       const { material, mesh } = bakeObject;
       const { min, max } = uvs.get(mesh) as any;
@@ -132,12 +145,12 @@ export const createTextureAtlas = async ({ meshes }) => {
         let image = getTextureImage(material, imageToMaterialMapping[name].find((textureName) => getTextureImage(material, textureName)));
         console.log('name', name, 'image', image);
         if (image) {
-          context.drawImage(image, min.x * ATLAS_SIZE_PX * xScaleFactor, min.y * ATLAS_SIZE_PX * yScaleFactor, xTileSize, yTileSize);
+          context.drawImage(image, min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, xTileSize, yTileSize);
         } else {
-          // context.fillStyle = name === 'diffuse' ? `#${material.color.clone().getHexString()}` : name === 'normal' ? '#8080ff' : name === 'orm' ?
-          //   `#${(new THREE.Color(material.aoMapIntensity, material.roughness, material.metalness)).getHexString()}` : '#7F7F7F';
+          context.fillStyle = name === 'diffuse' ? `#${material.color.clone().getHexString()}` : name === 'normal' ? '#8080ff' : name === 'orm' ?
+            `#${(new THREE.Color(material.aoMapIntensity, material.roughness, material.metalness)).getHexString()}` : '#7F7F7F';
 
-          // context.fillRect(min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, xTileSize, yTileSize);
+          context.fillRect(min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, xTileSize, yTileSize);
         }
       });
 
@@ -158,6 +171,8 @@ export const createTextureAtlas = async ({ meshes }) => {
           uv2.array[i] = lerp(uv2.array[i], 0, 1, min.x, max.x);
           uv2.array[i + 1] = lerp(uv2.array[i + 1], 0, 1, min.y, max.y);
         }
+      } else {
+        geometry.attributes.uv2 = geometry.attributes.uv;
       }
       const context = contexts['orm'];
 
@@ -169,29 +184,29 @@ export const createTextureAtlas = async ({ meshes }) => {
       console.log('meshBufferGeometry.attributes.uv', meshBufferGeometry.attributes.uv)
       // start by iterating over the indices of the triangle vertices
       console.log(meshBufferGeometry.index)
-      const arr = meshBufferGeometry.index.array ?? meshBufferGeometry.index;
-      for (let i = 0; i < arr.length; i += 3) {
-        // get the indices of the triangle's vertices
-        const index0 = arr[i];
-        const index1 = arr[i + 1];
-        const index2 = arr[i + 2];
-        // get the uv coordinates of the triangle's vertices
-        const uv0 = { x: meshBufferGeometry.attributes.uv.array[index0 * 2], y: meshBufferGeometry.attributes.uv.array[index0 * 2 + 1] };
-        const uv1 = { x: meshBufferGeometry.attributes.uv.array[index1 * 2], y: meshBufferGeometry.attributes.uv.array[index1 * 2 + 1] };
-        const uv2 = { x: meshBufferGeometry.attributes.uv.array[index2 * 2], y: meshBufferGeometry.attributes.uv.array[index2 * 2 + 1] };
+      // const arr = meshBufferGeometry.index.array ?? meshBufferGeometry.index;
+      // for (let i = 0; i < arr.length; i += 3) {
+      //   // get the indices of the triangle's vertices
+      //   const index0 = arr[i];
+      //   const index1 = arr[i + 1];
+      //   const index2 = arr[i + 2];
+      //   // get the uv coordinates of the triangle's vertices
+      //   const uv0 = { x: meshBufferGeometry.attributes.uv.array[index0 * 2], y: meshBufferGeometry.attributes.uv.array[index0 * 2 + 1] };
+      //   const uv1 = { x: meshBufferGeometry.attributes.uv.array[index1 * 2], y: meshBufferGeometry.attributes.uv.array[index1 * 2 + 1] };
+      //   const uv2 = { x: meshBufferGeometry.attributes.uv.array[index2 * 2], y: meshBufferGeometry.attributes.uv.array[index2 * 2 + 1] };
         
 
-        context.fillStyle = `#000000`;
-        context.beginPath();
-        // console.log('drawing triangle', uv0, uv1, uv2);
-        // draw lines between each of the triangle's vertices
-        context.moveTo(uv0.x * ATLAS_SIZE_PX * xScaleFactor, uv0.y * ATLAS_SIZE_PX * yScaleFactor);
-        context.lineTo(uv1.x * ATLAS_SIZE_PX * xScaleFactor, uv1.y * ATLAS_SIZE_PX * yScaleFactor);
-        context.lineTo(uv2.x * ATLAS_SIZE_PX * xScaleFactor, uv2.y * ATLAS_SIZE_PX * yScaleFactor);
-        context.lineTo(uv0.x * ATLAS_SIZE_PX * xScaleFactor, uv0.y * ATLAS_SIZE_PX * yScaleFactor);
-        context.stroke();
-        context.closePath();
-      }
+      //   context.fillStyle = `#000000`;
+      //   context.beginPath();
+      //   // console.log('drawing triangle', uv0, uv1, uv2);
+      //   // draw lines between each of the triangle's vertices
+      //   context.moveTo(uv0.x * ATLAS_SIZE_PX * xScaleFactor, uv0.y * ATLAS_SIZE_PX * yScaleFactor);
+      //   context.lineTo(uv1.x * ATLAS_SIZE_PX * xScaleFactor, uv1.y * ATLAS_SIZE_PX * yScaleFactor);
+      //   context.lineTo(uv2.x * ATLAS_SIZE_PX * xScaleFactor, uv2.y * ATLAS_SIZE_PX * yScaleFactor);
+      //   context.lineTo(uv0.x * ATLAS_SIZE_PX * xScaleFactor, uv0.y * ATLAS_SIZE_PX * yScaleFactor);
+      //   context.stroke();
+      //   context.closePath();
+      // }
     });
   
     // Create textures from canvases

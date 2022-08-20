@@ -34,10 +34,12 @@ function findSceneGroup(object3D) {
 function mergeSourceAttributes({ sourceAttributes }) {
   const propertyNames = new Set(); // e.g. ["normal", "position", "skinIndex", "skinWeight", "tangent", "uv", "uv2"]
   const allSourceAttributes = Array.from(sourceAttributes.values());
+  console.log('allSourceAttributes are', allSourceAttributes)
   allSourceAttributes.forEach((sourceAttributes) => {
     Object.keys(sourceAttributes).forEach((name) => propertyNames.add(name));
   });
-
+  console.log('propertyNames are', propertyNames);
+  propertyNames.delete('uv2')
   const destAttributes = {};
   Array.from(propertyNames.keys()).map((name: string | number) => {
     destAttributes[name] = BufferGeometryUtils.mergeBufferAttributes(
@@ -245,7 +247,7 @@ function remapMorphTrack({ track, sourceMorphTargetDictionary, destMorphTargetDi
     destKeyframes.push(destFrame);
   }
 
-  const destTrackName = `${constants.combinedMeshName}.morphTargetInfluences`;
+  const destTrackName = `${"CombinedMesh"}.morphTargetInfluences`;
   const destTrack = new THREE.NumberKeyframeTrack(destTrackName, track.times, destKeyframes.flat());
 
   // Make sure the track will interpolate correctly

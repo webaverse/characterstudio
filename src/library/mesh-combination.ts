@@ -49,13 +49,13 @@ function removeBakedMorphs(mesh, bakedMorphIndices) {
   });
 }
 
-export async function combine({ avatar }) {
-  const meshesToExclude = findChildrenByType(avatar, "SkinnedMesh").filter(
-    (mesh) => mesh.material.transparent || hasHubsComponent(mesh, "uv-scroll")
-  );
+export async function combine({ avatar, atlasSize = 4096 }) {
+  // const meshesToExclude = findChildrenByType(avatar, "SkinnedMesh").filter(
+  //   (mesh) => mesh.material.transparent || hasHubsComponent(mesh, "uv-scroll")
+  // );
 
 
-  const { bakeObjects, textures, uvs } = await createTextureAtlas({ meshes: findChildrenByType(avatar, "SkinnedMesh").filter((mesh) => !meshesToExclude.includes(mesh)) });
+  const { bakeObjects, textures, uvs } = await createTextureAtlas({ atlasSize, meshes: findChildrenByType(avatar, "SkinnedMesh") });
   // bakeObjects.forEach((bakeObject) => remapUVs({ mesh: bakeObject.mesh, uvs: uvs.get(bakeObject.mesh) }));
 
   // bakeObjects.forEach((bakeObject) => removeBakedMorphs(bakeObject.mesh, bakeMorphs(bakeObject.mesh)));
@@ -94,29 +94,29 @@ export async function combine({ avatar }) {
   material.metalness = 1;
 
   const mesh = new THREE.SkinnedMesh(geometry, material);
-  mesh.name = constants.combinedMeshName;
+  mesh.name = "CombinedMesh";
   mesh.morphTargetInfluences = dest.morphTargetInfluences;
   mesh.morphTargetDictionary = dest.morphTargetDictionary;
 
   // Add unmerged meshes
-  const clones = meshesToExclude.map((o) => {
-    return o.clone(false);
-  });
+  // const clones = meshesToExclude.map((o) => {
+  //   return o.clone(false);
+  // });
 
   const skeleton = cloneSkeleton(meshes[0]);
   mesh.bind(skeleton);
-  clones.forEach((clone) => {
-    clone.bind(skeleton);
-  });
+  // clones.forEach((clone) => {
+  //   clone.bind(skeleton);
+  // });
 
   const group = new THREE.Object3D();
   group.name = "AvatarRoot";
   (group as any).animations = dest.animations;
   group.add(mesh);
   group.add(skeleton.bones[0]);
-  clones.forEach((clone) => {
-    group.add(clone);
-  });
+  // clones.forEach((clone) => {
+  //   group.add(clone);
+  // });
 
   return group;
 }

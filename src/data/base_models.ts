@@ -2,7 +2,7 @@ export default [
   {
     "id": "1",
     "name": "Body1",
-    "file": "/clonex.glb",
+    "file": "/cowboy.glb",
     "animation": "/Animation.glb",
     "thumbnail": "/body1.png",
     "format": "glb",
