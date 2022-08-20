@@ -35,23 +35,15 @@ function mergeSourceAttributes({ sourceAttributes }) {
   const propertyNames = new Set(); // e.g. ["normal", "position", "skinIndex", "skinWeight", "tangent", "uv", "uv2"]
   const allSourceAttributes = Array.from(sourceAttributes.values());
   allSourceAttributes.forEach((sourceAttributes) => {
-    delete sourceAttributes['color']
-    
     Object.keys(sourceAttributes).forEach((name) => propertyNames.add(name));
   });
 
-  console.log('allSourceAttributes', allSourceAttributes);
-
   const destAttributes = {};
   Array.from(propertyNames.keys()).map((name: string | number) => {
-    console.log('merging', name);
-      destAttributes[name] = BufferGeometryUtils.mergeBufferAttributes(
-        allSourceAttributes.map((sourceAttributes) => sourceAttributes[name])
-        // remove color attribute
-        .filter((attribute) => attribute && attribute.name !== 'color').flat()
-      );
+    destAttributes[name] = BufferGeometryUtils.mergeBufferAttributes(
+      allSourceAttributes.map((sourceAttributes) => sourceAttributes[name]).flat()
+    );
   });
-  delete destAttributes['color']
 
   return destAttributes;
 }
@@ -133,7 +125,7 @@ function mergeSourceIndices({ meshes }) {
     indexOffset += mesh.geometry.attributes.position.count;
   });
 
-  return new THREE.BufferAttribute(new Float32Array(mergedIndex), mergedIndex.length);
+  return mergedIndex;
 }
 
 function dedupBy(items, propName) {
@@ -253,7 +245,7 @@ function remapMorphTrack({ track, sourceMorphTargetDictionary, destMorphTargetDi
     destKeyframes.push(destFrame);
   }
 
-  const destTrackName = `CombinedMesh.morphTargetInfluences`;
+  const destTrackName = `${constants.combinedMeshName}.morphTargetInfluences`;
   const destTrack = new THREE.NumberKeyframeTrack(destTrackName, track.times, destKeyframes.flat());
 
   // Make sure the track will interpolate correctly
@@ -303,7 +295,6 @@ export function mergeGeometry({ meshes }) {
     morphTargetInfluences: new Map(meshes.map((m) => [m, m.morphTargetInfluences || []])),
     // animationClips: new Map(meshes.map((m) => [m, findSceneGroup(m).animations])), //disable for now cuz no animations.
   };
-  const bufferGeometry = new THREE.BufferGeometry();
 
   const dest = {
     attributes: null,
@@ -313,12 +304,23 @@ export function mergeGeometry({ meshes }) {
     index: null,
     animations: {}
   };
+  dest.attributes = mergeSourceAttributes({ sourceAttributes: source.attributes });
   const destMorphTargetDictionary = mergeSourceMorphTargetDictionaries({
     sourceMorphTargetDictionaries: source.morphTargetDictionaries,
   });
-  bufferGeometry.attributes = mergeSourceAttributes({ sourceAttributes: source.attributes });
-  bufferGeometry.index = mergeSourceIndices({ meshes });
-
+  dest.morphTargetDictionary = destMorphTargetDictionary;
+  dest.morphAttributes = mergeSourceMorphAttributes({
+    meshes,
+    sourceMorphAttributes: source.morphAttributes,
+    sourceMorphTargetDictionaries: source.morphTargetDictionaries,
+    destMorphTargetDictionary,
+  });
+  dest.morphTargetInfluences = mergeMorphTargetInfluences({
+    meshes,
+    sourceMorphTargetDictionaries: source.morphTargetDictionaries,
+    destMorphTargetDictionary,
+  });
+  dest.index = mergeSourceIndices({ meshes });
   //disable for now cuz no animations.
   // dest.animations = remapAnimationClips({
   //   meshes,
@@ -327,18 +329,7 @@ export function mergeGeometry({ meshes }) {
   //   sourceMorphTargetDictionaries: source.morphTargetDictionaries,
   //   destMorphTargetDictionary,
   // });
-  
-  
-  bufferGeometry.setAttribute("position", bufferGeometry.attributes.position);
-  bufferGeometry.setAttribute("normal", bufferGeometry.attributes.normal);
-  bufferGeometry.setAttribute("uv", bufferGeometry.attributes.uv);
-  
-  // bufferGeometry.morphAttributes = mergeSourceMorphAttributes({
-  //   meshes,
-  //   sourceMorphAttributes: source.morphAttributes,
-  //   sourceMorphTargetDictionaries: source.morphTargetDictionaries,
-  //   destMorphTargetDictionary,
-  // });
+  dest.animations = {};
 
-  return { source, dest: bufferGeometry };
+  return { source, dest };
 }

@@ -54,31 +54,35 @@ export async function combine({ avatar }) {
     (mesh) => mesh.material.transparent || hasHubsComponent(mesh, "uv-scroll")
   );
 
-  const { bakeObjects, textures, uvs } = await createTextureAtlas({ meshes: findChildrenByType(avatar, "SkinnedMesh")
-    .filter((mesh) => !meshesToExclude.includes(mesh)) });
-  
+
+  const { bakeObjects, textures, uvs } = await createTextureAtlas({ meshes: findChildrenByType(avatar, "SkinnedMesh").filter((mesh) => !meshesToExclude.includes(mesh)) });
+  // bakeObjects.forEach((bakeObject) => remapUVs({ mesh: bakeObject.mesh, uvs: uvs.get(bakeObject.mesh) }));
+
+  // bakeObjects.forEach((bakeObject) => removeBakedMorphs(bakeObject.mesh, bakeMorphs(bakeObject.mesh)));
+
   const meshes = bakeObjects.map((bakeObject) => bakeObject.mesh);
-  
-  // meshes.forEach((mesh) => removeBakedMorphs(mesh, bakeMorphs(mesh)));
 
   meshes.forEach((mesh) => {
     const geometry = mesh.geometry;
     if (!geometry.attributes.uv2) {
       geometry.attributes.uv2 = geometry.attributes.uv;
     }
-    // for (let i = 0; i < 8; i++) {
-    //   delete geometry.attributes[`morphTarget${i}`];
-    //   delete geometry.attributes[`morphNormal${i}`];
-    // }
+    // Exlude the currently "activated" morph attributes before merging.
+    // The BufferAttributes are not lost; they remain in `mesh.geometry.morphAttributes`
+    // and the influences remain in `mesh.morphTargetInfluences`.
+    for (let i = 0; i < 8; i++) {
+      delete geometry.attributes[`morphTarget${i}`];
+      delete geometry.attributes[`morphNormal${i}`];
+    }
   });
 
   const { source, dest } = mergeGeometry({ meshes });
 
   const geometry = new THREE.BufferGeometry();
   geometry.attributes = dest.attributes;
-  // geometry.morphAttributes = dest.morphAttributes;
-  // geometry.morphTargetsRelative = true;
-  geometry.index = dest.index;
+  geometry.morphAttributes = dest.morphAttributes;
+  geometry.morphTargetsRelative = true;
+  geometry.setIndex(dest.index);
 
   const material = new THREE.MeshStandardMaterial({
     map: textures["diffuse"],
@@ -90,9 +94,9 @@ export async function combine({ avatar }) {
   material.metalness = 1;
 
   const mesh = new THREE.SkinnedMesh(geometry, material);
-  mesh.name = "CombinedMesh";
-  // mesh.morphTargetInfluences = dest.morphTargetInfluences;
-  // mesh.morphTargetDictionary = dest.morphTargetDictionary;
+  mesh.name = constants.combinedMeshName;
+  mesh.morphTargetInfluences = dest.morphTargetInfluences;
+  mesh.morphTargetDictionary = dest.morphTargetDictionary;
 
   // Add unmerged meshes
   const clones = meshesToExclude.map((o) => {
@@ -107,7 +111,7 @@ export async function combine({ avatar }) {
 
   const group = new THREE.Object3D();
   group.name = "AvatarRoot";
-  // (group as any).animations = dest.animations;
+  (group as any).animations = dest.animations;
   group.add(mesh);
   group.add(skeleton.bones[0]);
   clones.forEach((clone) => {

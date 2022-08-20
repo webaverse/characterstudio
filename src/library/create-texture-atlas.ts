@@ -45,6 +45,7 @@ export const createTextureAtlas = async ({ meshes }) => {
       // console.log(dest);
       bakeObject.mesh = mesh.clone();
       bakeObject.mesh.geometry = dest;      
+      console.log('baked new geometry', bakeObject);
       }
     });
 
@@ -158,22 +159,22 @@ export const createTextureAtlas = async ({ meshes }) => {
           uv2.array[i + 1] = lerp(uv2.array[i + 1], 0, 1, min.y, max.y);
         }
       }
-      mesh.geometry = geometry;
       const context = contexts['orm'];
-      console.log('mesh.geometry is', mesh.geometry)
 
       // meshBufferGeometry is a THREE.BufferGeometry
       const meshBufferGeometry = mesh.geometry;
       
       console.log('meshBufferGeometry' , meshBufferGeometry)
       // for each triangle in meshBufferGeometry, find the uv coordinates of the triangle's vertices
-
+      console.log('meshBufferGeometry.attributes.uv', meshBufferGeometry.attributes.uv)
       // start by iterating over the indices of the triangle vertices
-      for (let i = 0; i < meshBufferGeometry.index.length; i += 3) {
+      console.log(meshBufferGeometry.index)
+      const arr = meshBufferGeometry.index.array ?? meshBufferGeometry.index;
+      for (let i = 0; i < arr.length; i += 3) {
         // get the indices of the triangle's vertices
-        const index0 = meshBufferGeometry.index[i];
-        const index1 = meshBufferGeometry.index[i + 1];
-        const index2 = meshBufferGeometry.index[i + 2];
+        const index0 = arr[i];
+        const index1 = arr[i + 1];
+        const index2 = arr[i + 2];
         // get the uv coordinates of the triangle's vertices
         const uv0 = { x: meshBufferGeometry.attributes.uv.array[index0 * 2], y: meshBufferGeometry.attributes.uv.array[index0 * 2 + 1] };
         const uv1 = { x: meshBufferGeometry.attributes.uv.array[index1 * 2], y: meshBufferGeometry.attributes.uv.array[index1 * 2 + 1] };
@@ -182,6 +183,7 @@ export const createTextureAtlas = async ({ meshes }) => {
 
         context.fillStyle = `#000000`;
         context.beginPath();
+        // console.log('drawing triangle', uv0, uv1, uv2);
         // draw lines between each of the triangle's vertices
         context.moveTo(uv0.x * ATLAS_SIZE_PX * xScaleFactor, uv0.y * ATLAS_SIZE_PX * yScaleFactor);
         context.lineTo(uv1.x * ATLAS_SIZE_PX * xScaleFactor, uv1.y * ATLAS_SIZE_PX * yScaleFactor);

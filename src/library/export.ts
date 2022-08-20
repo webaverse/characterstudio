@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 import { findChildrenByType, findChildByName, describeObject3D } from "./utils";
 import { combine } from "./mesh-combination";
 import debugConfig from "./debug-config";
@@ -91,13 +91,11 @@ function cloneIntoAvatar(avatarGroup) {
   }
 
   // Combine the "AvatarRoot" nodes
-  let avatarRoots = avatarGroup.children
+  const avatarRoots = avatarGroup.children
     .map((o) => {
-      console.log('reading', o.name)
-      return findChildByName(o, "AvatarRoot") || findChildByName(o, "Avatar") || findChildByName(o, "Armature");
+      return findChildByName(o, "AvatarRoot") || findChildByName(o, "Avatar");
     })
     .filter((o) => !!o);
-    if(!avatarRoots[0]) avatarRoots = avatarGroup.children
   const clonedAvatarRoot = avatarRoots[0].clone(false);
   for (const avatarRoot of avatarRoots) {
     clonedAvatarRoot.userData = combineHubsComponents(clonedAvatarRoot.userData, avatarRoot.userData);
@@ -119,4 +117,24 @@ function cloneIntoAvatar(avatarGroup) {
     clonedAvatarRoot.add(skinnedMesh);
   }
   return clonedScene;
+}
+
+export async function exportAvatar(avatarGroup) {
+  // TODO: Re-evaluate whether we want to perform this step.
+  // The intention (for now) is to make combination optional,
+  // so that it is easy to debug and also if non-mergable meshes
+  // are added, there's a workaround for them.
+  const clone = cloneIntoAvatar(avatarGroup);
+  console.log(clone)
+
+  const avatar = await combine({ avatar: clone });
+
+  if (debugConfig.debugGLTF) {
+    console.log("avatar", avatar);
+    const { gltf } = await exportGLTF(avatar, { binary: false, animations: avatar.animations })as any;
+    console.log("gltf", gltf);
+  }
+
+  const { gltf: glb } = await exportGLTF(avatar, { binary: true, animations: avatar.animations }) as any;
+  return { glb };
 }
