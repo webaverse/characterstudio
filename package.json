@@ -15,7 +15,7 @@
     "build": "rimraf dist && node esbuild.js",
     "watch": "nodemon -e js,jsx --watch src --exec \"rimraf dist && node esbuild.js\"",
     "serve": "vite preview",
-    "test": "node --inspect src/test.js",
+    "atlas": "node src/atlas.js",
     "lint": "npm run lint:js && npm run lint:style && npm run lint:prettier",
     "lint:js": "eslint --cache --ext .js,.jsx --format=pretty ./src",
     "lint:prettier": "prettier --check \"**/*\" --end-of-line auto"

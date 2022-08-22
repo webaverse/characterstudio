@@ -1,5 +1,6 @@
 import { BufferAttribute, } from "three";
-export function ToOutputVRMMeta(vrmMeta, icon, outputImage) {
+import { createCanvas } from "canvas";
+function ToOutputVRMMeta(vrmMeta, icon, outputImage) {
     return {
         allowedUserName: vrmMeta.allowedUserName,
         author: vrmMeta.author,
@@ -17,18 +18,19 @@ export function ToOutputVRMMeta(vrmMeta, icon, outputImage) {
     };
 }
 // WebGL(OpenGL)マクロ定数
-const WEBGL_CONST = {
-    ARRAY_BUFFER: 34962,
-    ELEMENT_ARRAY_BUFFER: 34963,
-    BYTE: 5120,
-    UNSIGNED_BYTE: 5121,
-    SHORT: 5122,
-    UNSIGNED_SHORT: 5123,
-    UNSIGNED_INT: 5125,
-    FLOAT: 5126,
-    LINEAR: 9729,
-    REPEAT: 10497,
-};
+var WEBGL_CONST;
+(function (WEBGL_CONST) {
+    WEBGL_CONST[WEBGL_CONST["ARRAY_BUFFER"] = 34962] = "ARRAY_BUFFER";
+    WEBGL_CONST[WEBGL_CONST["ELEMENT_ARRAY_BUFFER"] = 34963] = "ELEMENT_ARRAY_BUFFER";
+    WEBGL_CONST[WEBGL_CONST["BYTE"] = 5120] = "BYTE";
+    WEBGL_CONST[WEBGL_CONST["UNSIGNED_BYTE"] = 5121] = "UNSIGNED_BYTE";
+    WEBGL_CONST[WEBGL_CONST["SHORT"] = 5122] = "SHORT";
+    WEBGL_CONST[WEBGL_CONST["UNSIGNED_SHORT"] = 5123] = "UNSIGNED_SHORT";
+    WEBGL_CONST[WEBGL_CONST["UNSIGNED_INT"] = 5125] = "UNSIGNED_INT";
+    WEBGL_CONST[WEBGL_CONST["FLOAT"] = 5126] = "FLOAT";
+    WEBGL_CONST[WEBGL_CONST["LINEAR"] = 9729] = "LINEAR";
+    WEBGL_CONST[WEBGL_CONST["REPEAT"] = 10497] = "REPEAT";
+})(WEBGL_CONST || (WEBGL_CONST = {}));
 const BLENDSHAPE_PREFIX = "blend_";
 const MORPH_CONTROLLER_PREFIX = "BlendShapeController_";
 const SPRINGBONE_COLLIDER_NAME = "vrmColliderSphere";
@@ -138,7 +140,7 @@ export default class VRMExporter {
                 mesh.morphTargetDictionary = {};
                 mesh.morphTargetInfluences = [];
                 mesh.geometry.morphAttributes = {};
-                // mesh.updateMorphTargets();
+                mesh.updateMorphTargets();
                 // throw new Error(mesh.name + " morphTargetDictionary is null");
             }
             const morphIndexPair = Object.entries(mesh.morphTargetDictionary);
@@ -318,100 +320,82 @@ export default class VRMExporter {
         bufferViews.push(...meshDatas.map((data) => ({ buffer: data.buffer, type: data.type })));
         if (icon)
             bufferViews.push({
-                buffer2png(icon) { }, : .imageBitmap
-            }),
-                type.IMAGE,
-            ;
+                buffer: imageBitmap2png(icon.imageBitmap),
+                type: MeshDataType.IMAGE,
+            });
+        let bufferOffset = 0;
+        let imageIndex = 0;
+        let accessorIndex = 0;
+        const outputBufferViews = bufferViews.map((bufferView, index) => {
+            const value = {
+                buffer: 0,
+                byteLength: bufferView.buffer.byteLength,
+                byteOffset: bufferOffset,
+                target: bufferView.type === MeshDataType.IMAGE ||
+                    bufferView.type === MeshDataType.BIND_MATRIX
+                    ? undefined
+                    : bufferView.type === MeshDataType.INDEX
+                        ? WEBGL_CONST.ELEMENT_ARRAY_BUFFER
+                        : WEBGL_CONST.ARRAY_BUFFER, // TODO: だいたいこれだったの　Mesh/indicesだけELEMENT...
+            };
+            bufferOffset += bufferView.buffer.byteLength;
+            if (bufferView.type === MeshDataType.IMAGE) {
+                outputImages[imageIndex++].bufferView = index;
+            }
+            else {
+                outputAccessors[accessorIndex++].bufferView = index;
+            }
+            return value;
+        });
+        const outputScenes = toOutputScenes(scene, outputNodes);
+        const outputData = {
+            accessors: outputAccessors,
+            asset: exporterInfo,
+            buffers: [
+                {
+                    byteLength: bufferOffset,
+                },
+            ],
+            bufferViews: outputBufferViews,
+            extensions: {
+                VRM: {
+                    blendShapeMaster: blendShapeMaster,
+                    exporterVersion: EXPORTER_VERSION,
+                    firstPerson: vrmFirstPerson,
+                    humanoid: vrmHumanoid,
+                    materialProperties: materialProperties,
+                    meta: outputVrmMeta,
+                    secondaryAnimation: outputSecondaryAnimation,
+                    specVersion: "0.0", // TODO:
+                },
+            },
+            extensionsUsed: [
+                "KHR_materials_unlit",
+                "KHR_texture_transform",
+                "VRMC_materials_mtoon",
+                "VRM",
+            ],
+            images: outputImages,
+            materials: outputMaterials,
+            meshes: outputMeshes,
+            nodes: outputNodes,
+            samplers: outputSamplers,
+            scene: 0,
+            scenes: outputScenes,
+            skins: outputSkins,
+            textures: outputTextures,
+        };
+        const jsonChunk = new GlbChunk(parseString2Binary(JSON.stringify(outputData, undefined, 2)), "JSON");
+        const binaryChunk = new GlbChunk(concatBinary(bufferViews.map((buf) => buf.buffer)), "BIN\x00");
+        const fileData = concatBinary([jsonChunk.buffer, binaryChunk.buffer]);
+        const header = concatBinary([
+            parseString2Binary("glTF"),
+            parseNumber2Binary(2, 4),
+            parseNumber2Binary(fileData.byteLength + 12, 4),
+        ]);
+        onDone(concatBinary([header, fileData]));
     }
-    ;
 }
-/* png画像として書き出しのテスト
-    images.forEach((image, index) => {
-        const fileName = "test"+index.toString()+".png";
-        const canvas = document.createElement("canvas");
-        canvas.width = image.imageBitmap.width;
-        canvas.height = image.imageBitmap.height;
-        canvas.getContext('2d').drawImage(image.imageBitmap, 0, 0);
-        canvas.toBlob((blob) =>{
-            console.log(blob);
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            // link.click();
-        }, "image/png", 1.0);
-    });
-    */
-let bufferOffset = 0;
-let imageIndex = 0;
-let accessorIndex = 0;
-const outputBufferViews = bufferViews.map((bufferView, index) => {
-    const value = {
-        buffer: 0,
-        byteLength: bufferView.buffer.byteLength,
-        byteOffset: bufferOffset,
-        target: bufferView.type === MeshDataType.IMAGE ||
-            bufferView.type === MeshDataType.BIND_MATRIX
-            ? undefined
-            : bufferView.type === MeshDataType.INDEX
-                ? WEBGL_CONST.ELEMENT_ARRAY_BUFFER
-                : WEBGL_CONST.ARRAY_BUFFER, // TODO: だいたいこれだったの　Mesh/indicesだけELEMENT...
-    };
-    bufferOffset += bufferView.buffer.byteLength;
-    if (bufferView.type === MeshDataType.IMAGE) {
-        outputImages[imageIndex++].bufferView = index;
-    }
-    else {
-        outputAccessors[accessorIndex++].bufferView = index;
-    }
-    return value;
-});
-const outputScenes = toOutputScenes(scene, outputNodes);
-const outputData = {
-    accessors: outputAccessors,
-    asset: exporterInfo,
-    buffers: [
-        {
-            byteLength: bufferOffset,
-        },
-    ],
-    bufferViews: outputBufferViews,
-    extensions: {
-        VRM: {
-            blendShapeMaster: blendShapeMaster,
-            exporterVersion: EXPORTER_VERSION,
-            firstPersonFirstPerson,
-            humanoidHumanoid,
-            materialProperties: materialProperties,
-            metaMeta,
-            secondaryAnimation,
-            specVersion: "0.0", // TODO:
-        },
-    },
-    extensionsUsed: [
-        "KHR_materials_unlit",
-        "KHR_texture_transform",
-        "VRMC_materials_mtoon",
-        "VRM",
-    ],
-    images: outputImages,
-    materials: outputMaterials,
-    meshes: outputMeshes,
-    nodes: outputNodes,
-    samplers: outputSamplers,
-    scene: 0,
-    scenes: outputScenes,
-    skins: outputSkins,
-    textures: outputTextures,
-};
-const jsonChunk = new GlbChunk(parseString2Binary(JSON.stringify(outputData, undefined, 2)), "JSON");
-const binaryChunk = new GlbChunk(concatBinary(bufferViews.map((buf) => buf.buffer)), "BIN\x00");
-const fileData = concatBinary([jsonChunk.buffer, binaryChunk.buffer]);
-const header = concatBinary([
-    parseString2Binary("glTF"),
-    parseNumber2Binary(2, 4),
-    parseNumber2Binary(fileData.byteLength + 12, 4),
-]);
-onDone(concatBinary([header, fileData]));
 function radian2Degree(radian) {
     return radian * (180 / Math.PI);
 }
@@ -421,11 +405,9 @@ function getNodes(parentNode) {
     return [parentNode].concat(parentNode.children.map((child) => getNodes(child)).flat());
 }
 function imageBitmap2png(image) {
-    const canvas = document.createElement("canvas");
-    canvas.width = image.width;
-    canvas.height = image.height;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const canvas = createCanvas(image.width, image.height);
     canvas.getContext("2d").drawImage(image, 0, 0);
+    // rewrite the above code using node.js and buffer. you cannot use the canvas object anymore.
     const pngUrl = canvas.toDataURL("image/png");
     const data = atob(pngUrl.split(",")[1]);
     const array = new ArrayBuffer(data.length);
@@ -544,36 +526,40 @@ export class MeshData {
                 : undefined;
     }
 }
-const MaterialType = {
-    MeshBasicMaterial: "MeshBasicMaterial",
-    MeshStandardMaterial: "MeshStandardMaterial",
-    MToonMaterial: "MToonMaterial",
-};
-const AccessorsType = {
-    SCALAR: "SCALAR",
-    VEC2: "VEC2",
-    VEC3: "VEC3",
-    VEC4: "VEC4",
-    MAT4: "MAT4", // 16
-};
-const MeshDataType = {
-    POSITION: "POSITION",
-    NORMAL: "NORMAL",
-    UV: "UV",
-    INDEX: "INDEX",
-    SKIN_WEIGHT: "SKIN_WEIGHT",
-    SKIN_INDEX: "SKIN_INDEX",
-    BLEND_POSITION: "BLEND_POSITION",
-    BLEND_NORMAL: "BLEND_NORMAL",
-    BIND_MATRIX: "BIND_MATRIX",
-    IMAGE: "IMAGE",
-};
-const VRMObjectType = {
-    Group: "Group",
-    SkinnedMesh: "SkinnedMesh",
-    Object3D: "Object3D",
-    Bone: "Bone",
-};
+var MaterialType;
+(function (MaterialType) {
+    MaterialType["MeshBasicMaterial"] = "MeshBasicMaterial";
+    MaterialType["MeshStandardMaterial"] = "MeshStandardMaterial";
+    MaterialType["MToonMaterial"] = "MToonMaterial";
+})(MaterialType || (MaterialType = {}));
+var AccessorsType;
+(function (AccessorsType) {
+    AccessorsType["SCALAR"] = "SCALAR";
+    AccessorsType["VEC2"] = "VEC2";
+    AccessorsType["VEC3"] = "VEC3";
+    AccessorsType["VEC4"] = "VEC4";
+    AccessorsType["MAT4"] = "MAT4";
+})(AccessorsType || (AccessorsType = {}));
+var MeshDataType;
+(function (MeshDataType) {
+    MeshDataType["POSITION"] = "POSITION";
+    MeshDataType["NORMAL"] = "NORMAL";
+    MeshDataType["UV"] = "UV";
+    MeshDataType["INDEX"] = "INDEX";
+    MeshDataType["SKIN_WEIGHT"] = "SKIN_WEIGHT";
+    MeshDataType["SKIN_INDEX"] = "SKIN_INDEX";
+    MeshDataType["BLEND_POSITION"] = "BLEND_POSITION";
+    MeshDataType["BLEND_NORMAL"] = "BLEND_NORMAL";
+    MeshDataType["BIND_MATRIX"] = "BIND_MATRIX";
+    MeshDataType["IMAGE"] = "IMAGE";
+})(MeshDataType || (MeshDataType = {}));
+var VRMObjectType;
+(function (VRMObjectType) {
+    VRMObjectType["Group"] = "Group";
+    VRMObjectType["SkinnedMesh"] = "SkinnedMesh";
+    VRMObjectType["Object3D"] = "Object3D";
+    VRMObjectType["Bone"] = "Bone";
+})(VRMObjectType || (VRMObjectType = {}));
 const toOutputMeshes = (meshes, meshDatas, uniqueMaterialNames) => {
     return meshes.map((object) => {
         const mesh = (object.type === VRMObjectType.Group
@@ -685,7 +671,7 @@ const toOutputMaterials = (uniqueMaterials, images) => {
         const metallicFactor = (() => {
             switch (material.type) {
                 case MaterialType.MeshStandardMaterial:
-                    return (material).metalness;
+                    return material.metalness;
                 case MaterialType.MeshBasicMaterial:
                     return 0;
                 default:
@@ -695,7 +681,7 @@ const toOutputMaterials = (uniqueMaterials, images) => {
         const roughnessFactor = (() => {
             switch (material.type) {
                 case MaterialType.MeshStandardMaterial:
-                    return (material).roughness;
+                    return material.roughness;
                 case MaterialType.MeshBasicMaterial:
                     return 0.9;
                 default:
@@ -761,7 +747,7 @@ const toOutputScenes = (scene, outputNodes) => {
         },
     ];
 };
-const toOutputSecondaryAnimation = (springBoneSpringBoneManager, nodeNames) => {
+const toOutputSecondaryAnimation = (springBone, nodeNames) => {
     return {
         boneGroups: springBone.springBoneGroupList[0] &&
             springBone.springBoneGroupList[0].length > 0

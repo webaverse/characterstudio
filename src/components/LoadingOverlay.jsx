@@ -1,11 +1,9 @@
 import React from "react";
-import CircularProgress, {CircularProgressProps} from "@mui/material/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-function CircularProgressWithLabel(props : CircularProgressProps & {
-    value : number
-}) {
+function CircularProgressWithLabel(props) {
     return (
         <Box sx={
             {

@@ -7,3 +7,6 @@ dist-ssr
 .dfx
 yarn.lock
 package-lock.json
+*.glb
+output/*
+input/*

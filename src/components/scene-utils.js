@@ -16,17 +16,17 @@ let scene = null;
 let traits = {};
 let model = null;
 
-export const setScene = (newScene: any) => {
+export const setScene = (newScene) => {
   scene = newScene;
 }
 
 
-export const setAvatarModel = (newModel: any) => {
+export const setAvatarModel = (newModel) => {
   model = newModel;
 }
 
 
-export const setAvatarTraits = (newTraits: any) => {
+export const setAvatarTraits = (newTraits) => {
   traits = newTraits;
 }
 
@@ -44,31 +44,31 @@ export async function getModelFromScene(format = 'glb') {
       maxTextureSize: 1024 || Infinity
     }
     console.log("Scene is", scene);
-    const glb: any = await new Promise((resolve) => exporter.parse(scene, resolve, (error) => console.error("Error getting model", error), options))
+    const glb = await new Promise((resolve) => exporter.parse(scene, resolve, (error) => console.error("Error getting model", error), options))
     return new Blob([glb], { type: 'model/gltf-binary' })
   } else if (format && format === 'vrm') {
     const exporter = new VRMExporter();
     // is the args for this right?
-    const vrm: any = await new Promise((resolve) => exporter.parse(scene, scene, resolve))
+    const vrm = await new Promise((resolve) => exporter.parse(scene, scene, resolve))
     return new Blob([vrm], { type: 'model/gltf-binary' })
   } else {
     return console.error("Invalid format");
   }
 }
 
-export async function getObjectValue(target: any, scene: any, value: any) {
+export async function getObjectValue(target, scene, value) {
   if (target && scene) {
     const object = scene.getObjectByName(target);
     return object.material.color;
   }
 }
 
-export async function getMesh(name: any, scene: any) {
+export async function getMesh(name, scene) {
   const object = scene.getObjectByName(name);
   return object;
 }
 
-export async function setMaterialColor(scene: any, value: any, target: any) {
+export async function setMaterialColor(scene, value, target) {
   if (scene && value) {
     const object = scene.getObjectByName(target);
     const randColor = value;
@@ -77,7 +77,7 @@ export async function setMaterialColor(scene: any, value: any, target: any) {
   }
 }
 
-export async function loadModel(file: any, type: any) {
+export async function loadModel(file, type) {
   if (type && type === "gltf/glb" && file) {
     const loader = new GLTFLoader();
     return loader.loadAsync(file, (e) => {
@@ -101,7 +101,7 @@ export async function loadModel(file: any, type: any) {
   }
 }
 
-export async function getMorphValue(key: any, scene: any, target: any) {
+export async function getMorphValue(key, scene, target) {
   if (key && scene) {
     var mesh = scene.getObjectByName(target);
     const index = mesh.morphTargetDictionary[key];
@@ -112,13 +112,13 @@ export async function getMorphValue(key: any, scene: any, target: any) {
 }
 
 export async function updateMorphValue(
-  key: any,
-  value: any,
-  scene: any,
-  targets: any
+  key,
+  value,
+  scene,
+  targets
 ) {
   if (key && targets && value) {
-    targets.map((target: any) => {
+    targets.map((target) => {
       var mesh = scene.getObjectByName(target);
       const index = mesh.morphTargetDictionary[key];
       if (index !== undefined) {
@@ -128,7 +128,7 @@ export async function updateMorphValue(
   }
 }
 
-export async function updatePose(name: any, value: any, axis: any, scene: any) {
+export async function updatePose(name, value, axis, scene) {
   var bone = scene.getObjectByName(name);
   if (bone instanceof THREE.Bone) {
     switch (axis) {
@@ -148,9 +148,9 @@ export async function updatePose(name: any, value: any, axis: any, scene: any) {
 }
 
 export async function download(
-  model: any,
-  fileName: any,
-  format: any,
+  model,
+  fileName,
+  format,
   atlasSize = 4096
 ) {
   // We can use the SaveAs() from file-saver, but as I reviewed a few solutions for saving files,
@@ -224,7 +224,7 @@ export async function download(
     })
 
     avatar.add(clonedSecondary);
-    exporter.parse(model, avatar, (vrm : ArrayBuffer) => {
+    exporter.parse(model, avatar, vrm => {
       saveArrayBufferVRM(vrm, `${downloadFileName}.vrm`);
     });
   }

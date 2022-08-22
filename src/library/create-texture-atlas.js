@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { createCanvas, createImageData } from 'canvas';
 import { mergeGeometry } from "./merge-geometry.js";
+import debugConfig from "./debug-config.js";
+
 function createContext({ width, height }) {
     const canvas = createCanvas(width, height);
     const context = canvas.getContext("2d");
@@ -32,23 +34,23 @@ export const createTextureAtlas = async ({ meshes, atlasSize = 4096 }) => {
         }
     });
     const contexts = Object.fromEntries(IMAGE_NAMES.map((name) => [name, createContext({ width: ATLAS_SIZE_PX, height: ATLAS_SIZE_PX })]));
-    // if (typeof window !== "undefined" && debugConfig.debugCanvases) {
-    //   const previous = document.getElementById("debug-canvases");
-    //   if (previous) {
-    //     previous.parentNode.removeChild(previous);
-    //   }
-    //   const domElement = document.createElement("div");
-    //   domElement.style.zIndex = "9999";
-    //   domElement.style.position = "absolute";
-    //   domElement.setAttribute("id", "debug-canvases");
-    //   document.body.append(domElement);
-    //   IMAGE_NAMES.map((name) => {
-    //     const title = document.createElement("h1");
-    //     title.innerText = name;
-    //     domElement.append(title);
-    //     domElement.append(contexts[name].canvas);
-    //   });
-    // }
+    if (typeof window !== "undefined" && debugConfig.debugCanvases) {
+      const previous = document.getElementById("debug-canvases");
+      if (previous) {
+        previous.parentNode.removeChild(previous);
+      }
+      const domElement = document.createElement("div");
+      domElement.style.zIndex = "9999";
+      domElement.style.position = "absolute";
+      domElement.setAttribute("id", "debug-canvases");
+      document.body.append(domElement);
+      IMAGE_NAMES.map((name) => {
+        const title = document.createElement("h1");
+        title.innerText = name;
+        domElement.append(title);
+        domElement.append(contexts[name].canvas);
+      });
+    }
     const numTiles = Math.floor(Math.sqrt(meshes.length) + 1);
     const tileSize = ATLAS_SIZE_PX / numTiles;
     const originalUVs = new Map(bakeObjects.map((bakeObject, i) => {
@@ -93,10 +95,8 @@ export const createTextureAtlas = async ({ meshes, atlasSize = 4096 }) => {
             // iterate through imageToMaterialMapping[name] and find the first image that is not null
             let image = getTextureImage(material, imageToMaterialMapping[name].find((textureName) => getTextureImage(material, textureName)));
             if (image !== '' && image !== undefined) {
-                console.log('image is', image);
                 try {
                     const imageData = new Uint8ClampedArray(image.data);
-                    console.log('imageData is', image);
                     const arr = createImageData(imageData, xTileSize, yTileSize);
                     const tempcanvas = createCanvas(tileSize, tileSize);
                     const tempctx = tempcanvas.getContext("2d");
@@ -116,7 +116,6 @@ export const createTextureAtlas = async ({ meshes, atlasSize = 4096 }) => {
                 context.fillRect(min.x * ATLAS_SIZE_PX, min.y * ATLAS_SIZE_PX, xTileSize, yTileSize);
             }
         });
-        console.log('done')
         const geometry = mesh.geometry;
         const uv = geometry.attributes.uv;
         if (uv) {
@@ -152,7 +151,6 @@ export const createTextureAtlas = async ({ meshes, atlasSize = 4096 }) => {
         //   const uv2 = { x: meshBufferGeometry.attributes.uv.array[index2 * 2], y: meshBufferGeometry.attributes.uv.array[index2 * 2 + 1] };
         //   context.fillStyle = `#000000`;
         //   context.beginPath();
-        //   // console.log('drawing triangle', uv0, uv1, uv2);
         //   // draw lines between each of the triangle's vertices
         //   context.moveTo(uv0.x * ATLAS_SIZE_PX * xScaleFactor, uv0.y * ATLAS_SIZE_PX * yScaleFactor);
         //   context.lineTo(uv1.x * ATLAS_SIZE_PX * xScaleFactor, uv1.y * ATLAS_SIZE_PX * yScaleFactor);
