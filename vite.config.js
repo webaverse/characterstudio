@@ -1,13 +1,9 @@
 import { defineConfig } from "vite"
 import path from "path"
-import dts from 'vite-plugin-dts';
 import react from '@vitejs/plugin-react';
 
-
-// See guide on how to configure Vite at:
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dts({insertTypesEntry: true})],
+  plugins: [react()],
   build: {
     assetsInlineLimit: 65536,
     lib: {
@@ -16,12 +12,8 @@ export default defineConfig({
       fileName: (format) => `meshbaker.${format}.js`
     },
     rollupOptions: {
-      // make sure to externalize deps that shouldn't be bundled
-      // into your library
-      external: ['react', 'react-dom'],
+      external: ['react', 'three', 'react-dom'],
       output: {
-        // Provide global variables to use in the UMD build
-        // for externalized deps
         globals: {
           react: 'React'
         }

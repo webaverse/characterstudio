@@ -11,14 +11,6 @@ import { TemplateModel } from "./Models";
 import Button from "@mui/material/Button";
 import { download } from "./scene-utils";
 
-// TODO: 1. show maps of current model
-// 2. on bake, show maps of final model
-// 3. make sure we can bake and bake again
-// 4. swap model for cowboy
-// 5. add "priority" sizing for each of the parts of the template
-
-
-
 function TextureInspector ({ model }) {
   if(!model || !model.isGroup) return null;
   const materials = [];
@@ -141,7 +133,7 @@ export default function CharacterEditor(props: any) {
               <Button onClick={() => downloadModel('vrm')}>Download VRM</Button>
               <Button onClick={() => downloadModel('gltf/glb')}>Download GLB</Button>
             </div>
-            <TextureInspector model={model && model.scene} />
+            <TextureInspector model={model} />
             <div
               id="canvas-wrap"
               className={`canvas-wrap ${'generator'}`}

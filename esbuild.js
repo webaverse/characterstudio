@@ -50,7 +50,7 @@ esbuild
         platform: 'node',
         format: 'esm',
         target: ['node16'],
-        external: ['three'],
+        external: ['three', 'canvas', 'vblob'],
         plugins: [nativeNodeModulesPlugin],
     })
     .catch(() => process.exit(1));
