@@ -1,5 +1,13 @@
 import * as THREE from "three";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+
+
+import { GLTFExporter } from './GLTFExporter.js';
+// // if this is node.js, use the local version of the library, other import the library from three.js jsm examples
+// if (!process && !process.env.env) {
+//     console.log('browser!')
+//     GLTFExporter = await import('three/examples/jsm/exporters/GLTFExporter.js').module;
+// }
+
 import { findChildrenByType, findChildByName } from "./utils.js";
 import { combine } from "./mesh-combination.js";
 import debugConfig from "./debug-config.js";

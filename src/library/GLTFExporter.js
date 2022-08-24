@@ -1,53 +1,38 @@
-/**
- * This script contains the relevant polyfills for the DOM window object.
- * It is used by the node build of three so that three.js can run on NodeJs
- */
-import { createCanvas } from "canvas";
-import { JSDOM } from "jsdom";
+// if we are in node.js (esm modules), we need to polyfill the window object
+// dynamically import JSDOM using es6 semantics (async import)
+if (typeof window === "undefined") {
+	  import("jsdom").then((module) => {
+		const JSDOM = module.default;
+		const jsdomOptions = {
+			pretendToBeVisual: true,
+			storageQuota: 1e9,
+			resources: "usable",
+			runScripts: "dangerously"
+		};
 
-const jsdomOptions = {
-	pretendToBeVisual: true,
-	storageQuota: 1e9,
-	resources: "usable",
-	runScripts: "dangerously"
-};
+		const dom = new JSDOM(
+			`<!DOCTYPE html><body id="main"><p >Hello world</p></body>`,
+			jsdomOptions
+		);
+		globalThis.window = dom.window;
+		globalThis.document = dom.window.document;
+		globalThis.navigator = dom.window.navigator;
+		globalThis.Blob = dom.window.Blob;
+		globalThis.FileReader = dom.window.FileReader;
+		globalThis.Image = dom.window.Image;
+		globalThis.ImageData = dom.window.ImageData;
+		globalThis.CanvasRenderingContext2D = dom.window.CanvasRenderingContext2D;
+		globalThis.Canvas = dom.window.Canvas;
+		globalThis.HTMLCanvasElement = dom.window.HTMLCanvasElement;
+		globalThis.HTMLImageElement = dom.window.HTMLImageElement;
+		globalThis.HTMLVideoElement = dom.window.HTMLVideoElement;
+		globalThis.HTMLAudioElement = dom.window.HTMLAudioElement;
+		globalThis.HTMLMediaElement = dom.window.HTMLMediaElement;
+		globalThis.HTMLAnchorElement = dom.window.HTMLAnchorElement;
+		globalThis.HTMLAreaElement = dom.window.HTMLAreaElement;
+	  });
+	}
 
-const jsdom = new JSDOM(
-	`<!DOCTYPE html><body id="main"><p >Hello world</p></body>`,
-	jsdomOptions
-);
-
-const window = jsdom.window;
-const Blob = window.Blob;
-const atob = window.atob;
-const DOMParser = window.DOMParser;
-const document = window.document;
-const XMLHttpRequest = window.XMLHttpRequest;
-const TextEncoder = window.TextEncoder;
-const TextDecoder = window.TextDecoder;
-const decodeURIComponent = window.decodeURIComponent;
-const CustomEvent = window.CustomEvent;
-const WebGLRenderingContext = window.WebGLRenderingContext;
-const WebGL2RenderingContext = window.WebGL2RenderingContext;
-const innerWidth = window.innerWidth;
-const innerHeight = window.innerHeight;
-const DeviceOrientationEvent = window.DeviceOrientationEvent;
-const orientation = window.orientation;
-const removeEventListener = window.removeEventListener;
-const focus = window.focus;
-const pageXOffset = window.pageXOffset;
-const pageYOffset = window.pageYOffset;
-const FileReader = window.FileReader;
-const URL = window.URL;
-const ActiveXObject = window.ActiveXObject;
-const AudioContext = window.AudioContext; // Unsupported
-const webkitAudioContext = window.webkitAudioContext;
-const XRHand = window.XRHand;
-const HTMLImageElement = window.HTMLImageElement;
-const HTMLCanvasElement = window.HTMLCanvasElement;
-const ImageBitmap = window.ImageBitmap; // Unsupported (undefined)
-const createImageBitmap = window.createImageBitmap; // Unsupported
-const self = window.self;
 
 import {
 	BufferAttribute,
@@ -248,7 +233,7 @@ GLTFExporter.prototype = {
 
 			if (window.TextEncoder !== undefined) {
 
-				return new TextEncoder().encode(text).buffer;
+				return new window.TextEncoder().encode(text).buffer;
 
 			}
 
@@ -823,7 +808,7 @@ GLTFExporter.prototype = {
 			// convert base64/URLEncoded data component to raw binary data held in a string
 			var byteString;
 			if (dataURI.split(',')[0].indexOf('base64') >= 0)
-				byteString = atob(dataURI.split(',')[1]);
+				byteString = window.atob(dataURI.split(',')[1]);
 			else
 				byteString = unescape(dataURI.split(',')[1]);
 
@@ -836,7 +821,7 @@ GLTFExporter.prototype = {
 				ia[i] = byteString.charCodeAt(i);
 			}
 
-			return new Blob([ia], { type: mimeString });
+			return new window.Blob([ia], { type: mimeString });
 		}
 
 		/**
@@ -2118,7 +2103,7 @@ GLTFExporter.prototype = {
 		Promise.all(pending).then(function () {
 			console.log('all promises resolved')
 			// Merge buffers.
-			var blob = new Blob(buffers, { type: 'application/octet-stream' });
+			var blob = new window.Blob(buffers, { type: 'application/octet-stream' });
 
 			// Declare extensions.
 			var extensionsUsedList = Object.keys(extensionsUsed);
@@ -2165,7 +2150,7 @@ GLTFExporter.prototype = {
 						+ binaryChunkPrefix.byteLength + binaryChunk.byteLength;
 					headerView.setUint32(8, totalByteLength, true);
 
-					var glbBlob = new Blob([
+					var glbBlob = new window.Blob([
 						header,
 						jsonChunkPrefix,
 						jsonChunk,

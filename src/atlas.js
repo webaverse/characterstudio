@@ -8,6 +8,7 @@ import { combine } from './library/mesh-combination.js';
 import { loadGltf } from 'node-three-gltf';
 
 import { Blob, FileReader } from 'vblob';
+global = {}
 global.THREE = THREE;
 global.window = (global);
 (global).Blob = Blob; // working
