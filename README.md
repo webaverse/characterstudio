@@ -1,10 +1,5 @@
 # Webaverse Character Studio
 
-# Quick Start (library)
-```bash
-npm install meshbaker
-```
-
 # Quick Start
 ```bash
 # Install dependencies with legacy peer deps flag to ignore React errors
@@ -14,4 +9,9 @@ npm run dev
 # Or just use yarn
 yarn install
 yarn run dev
+```
+
+# Quick Start (library)
+```bash
+npm install meshbaker
 ```
