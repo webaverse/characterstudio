@@ -1,5 +1,8 @@
 # Webaverse Character Studio
 
+# Requirements
+Node version >=18.0.0
+
 # Quick Start
 ```bash
 # Install dependencies with legacy peer deps flag to ignore React errors
