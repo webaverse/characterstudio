@@ -1,7 +1,4 @@
-# Mesh Baker
-A small library to bake skinned meshes
-
-This is currently *NOT* production ready. Unless you are deving on it or are an elite coder looking to read through some example bake code, this will not do anything for you.
+# Webaverse Character Studio
 
 # Quick Start (library)
 ```bash
