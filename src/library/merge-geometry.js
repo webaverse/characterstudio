@@ -33,7 +33,7 @@ function mergeSourceAttributes({ sourceAttributes }) {
     });
     const destAttributes = {};
     Array.from(propertyNames.keys()).map((name) => {
-        destAttributes[name] = BufferGeometryUtils.mergeBufferAttributes(allSourceAttributes.map((sourceAttributes) => sourceAttributes[name]).flat());
+        destAttributes[name] = BufferGeometryUtils.mergeBufferAttributes(allSourceAttributes.map((sourceAttributes) => sourceAttributes[name]).flat().filter((attr) => attr !== undefined));
     });
     return destAttributes;
 }
