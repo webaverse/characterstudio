@@ -1,4 +1,4 @@
-# 3d-product-configurators
+# Character Studio of Webaverse
 
 ## Install
 
