@@ -1,19 +1,20 @@
-# Character Studio of Webaverse
+# Webaverse Character Studio
 
-## Install
+# Requirements
+Node version >=18.0.0
 
-Assumes you already have `node` installed. If you already have `yarn` installed you can skip the next command.
+# Quick Start
+```bash
+# Install dependencies with legacy peer deps flag to ignore React errors
+npm install --legacy-peer-deps
+npm run dev
 
-    npm install --global yarn
+# Or just use yarn
+yarn install
+yarn run dev
+```
 
-Install all dependencies for node
-
-    yarn install
-
-## Running
-
-    yarn start
-
-## Building
-
-    yarn build
+# Quick Start (library)
+```bash
+npm install meshbaker
+```

@@ -1,28 +1,29 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
-import { ToastContainer } from "react-toastify"
+import CharacterEditor from "./components";
+import { createTheme } from "@mui/material";
+import defaultTemplates from "./data/base_models";
 
-import { PrimaryRoutes } from "dataset/routes"
-import ThemeProvider from "./theme/ThemeProvider"
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-const queryClient = new QueryClient()
 
-export default function App() {
+const defaultTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#de2a5e",
+    },
+  },
+});
+
+function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <Routes>
-            {PrimaryRoutes.map(({ path, component }, index) => (
-              <Route key={index} path={path} element={component} />
-            ))}
-            <Route path="*" element={<Navigate to="/scene" replace />} />
-          </Routes>
-          <ToastContainer theme="colored" />
-        </BrowserRouter>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
-    </ThemeProvider>
-  )
+    <CharacterEditor templates={defaultTemplates} theme={defaultTheme} />
+  );
 }
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+)
