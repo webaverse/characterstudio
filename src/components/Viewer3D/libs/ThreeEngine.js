@@ -116,8 +116,8 @@ export default class ThreeEngine {
 
     /////////////////////////////////////////////////////////////////////////////
     //Helpers
-    // this.axesHelper = new AxesHelper(5)
-    // this.scene.add(this.axesHelper)
+    this.axesHelper = new AxesHelper(50)
+    this.scene.add(this.axesHelper)
 
     this.shadowPlane = new ShadowPlane()
     this.scene.add(this.shadowPlane)
