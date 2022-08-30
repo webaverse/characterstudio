@@ -56,4 +56,30 @@ export const useStore = create((set, get) => ({
   setPressedKey: v => set({ pressedKey: v }),
   generatorInfo: {},
   setGeneratorInfo: v => set({ generatorInfo: v }),
+
+  //Configure Groups
+  groupModel: null,
+  setGroupModel: v => set({ groupModel: v }),
+  selectedGroupNodes: {},
+  setSelectedGroupNodes: v => set({ selectedGroupNodes: v }),
+  openBOM: false,
+  setOpenBOM: v => set({ openBOM: v }),
+  currentBOMData: null,
+  setCurrentBOMData: v => set({ currentBOMData: v }),
+
+  //New group dialog
+  newGroupName: "",
+  setNewGroupName: v => set({ newGroupName: v }),
+  openNewGroupDialog: false,
+  setOpenNewGroupDialog: v => set({ openNewGroupDialog: v }),
+
+  //Group From Template dialog
+  openGroupFromTemplateDialog: false,
+  setOpenGroupFromTemplateDialog: v => set({ openGroupFromTemplateDialog: v }),
+
+  //Style page
+  currentStyleData: null,
+  setCurrentStyleData: v => set({ currentStyleData: v }),
+  currentStyleDocumentData: null,
+  setCurrentStyleDocumentData: v => set({ currentStyleDocumentData: v }),
 }))

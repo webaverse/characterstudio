@@ -8,11 +8,9 @@ import { ENVIRONMENT_DATA } from "dataset/environments"
 import Loader from "components/Loader"
 
 import ThreeEngine from "./libs/ThreeEngine"
-import StyleInfo from "./StyleInfo"
 
 export default function Viewer3D({ file }) {
   //Store states
-
   const sunInfo = useStore(state => state.sunInfo)
   const setSunInfo = useStore(state => state.setSunInfo)
   const firstEmbientInfo = useStore(state => state.firstEmbientInfo)
@@ -221,7 +219,6 @@ export default function Viewer3D({ file }) {
       <Loader visible={loaderVisible} label="Loading a 3D model" />
       <ContextMenu model={contextMenuItems} ref={contextMenuRef} />
       <KeyLabel>{pressedKey}</KeyLabel>
-      <StyleInfo />
       <CanvasHolder
         ref={canvasHolderRef}
         onContextMenu={e => {

@@ -7,6 +7,7 @@ import { useStore } from "state/store"
 import { SETTING_DATA } from "dataset/settings"
 import EnvironmentPanel from "components/EnvironmentPanel"
 import LightPanel from "components/LightPanel"
+import { ConfigurePanelContent } from "components/ConfigurePanel"
 
 export default function SettingPanel() {
   const activeToolbarIndex = useStore(state => state.activeToolbarIndex)
@@ -28,10 +29,13 @@ export default function SettingPanel() {
             />
           </Header>
           <Content ref={contentRef}>
-            <LightContent active={activeToolbarIndex === 0 ? 1 : 0}>
+            <TabContent active={activeToolbarIndex === 0 ? 1 : 0}>
               <LightPanel />
               <EnvironmentPanel />
-            </LightContent>
+            </TabContent>
+            <TabContent active={activeToolbarIndex === 1 ? 1 : 0}>
+              <ConfigurePanelContent />
+            </TabContent>
           </Content>
         </Holder>
       )}
@@ -71,6 +75,6 @@ const Content = styled.div`
   overflow: auto;
 `
 
-const LightContent = styled.div`
+const TabContent = styled.div`
   display: ${props => (props.active ? "block" : "none")};
 `
