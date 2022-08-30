@@ -421,6 +421,7 @@ export default class ThreeEngine {
         case "fbx": {
           const self = this
           const scene = this.fbxLoader.parse(file.buffer)
+          this.loadScene(scene)
           break
         }
         case "glb": {
@@ -561,7 +562,7 @@ export default class ThreeEngine {
         this.meshes.push(child)
       }
     })
-    console.log(matList)
+
     this.storeInterface.setGroupModel(matList)
     this.rootModel.add(scene)
 

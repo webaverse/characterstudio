@@ -17,21 +17,21 @@ export const useStore = create((set, get) => ({
   sunInfo: {
     enabled: true,
     color: "#FFFDEC",
-    intensity: 6,
+    intensity: 4,
   },
   setSunInfo: v => set({ sunInfo: v }),
 
   firstEmbientInfo: {
     enabled: true,
     color: "#ffe7df",
-    intensity: 4,
+    intensity: 2,
   },
   setFirstEmbientInfo: v => set({ firstEmbientInfo: v }),
 
   secondEmbientInfo: {
     enabled: true,
     color: "#ffe7df",
-    intensity: 4,
+    intensity: 2,
   },
   setSecondEmbientInfo: v => set({ secondEmbientInfo: v }),
 

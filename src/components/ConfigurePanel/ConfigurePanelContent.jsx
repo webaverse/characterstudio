@@ -21,19 +21,25 @@ export default function ConfigurePanelContent() {
   }
 
   return (
-    <StyledTree
-      value={groupModel}
-      selectionMode="checkbox"
-      selectionKeys={selectedGroupNodes}
-      onSelectionChange={handleSelectionChange}
-      dragdropScope="configure-group-tree"
-      onDragDrop={handleDragDrop}
-      loading={loadingVisible}
-      loadingIcon="pi pi-spinner"
-      filter={true}
-    />
+    <Holder>
+      <StyledTree
+        value={groupModel}
+        selectionMode="checkbox"
+        selectionKeys={selectedGroupNodes}
+        onSelectionChange={handleSelectionChange}
+        dragdropScope="configure-group-tree"
+        onDragDrop={handleDragDrop}
+        loading={loadingVisible}
+        loadingIcon="pi pi-spinner"
+        filter={true}
+      />
+    </Holder>
   )
 }
+
+const Holder = styled.div`
+  padding: 1em;
+`
 
 const StyledTree = styled(Tree)`
   border: none;

@@ -16,7 +16,7 @@ export const ENVIRONMENT_DATA = [
     jpg: ChrisRoomJpg,
     azimuth: 40,
     zenith: 60,
-    exposure: 1,
+    exposure: 1.3,
   },
   {
     name: "City",
