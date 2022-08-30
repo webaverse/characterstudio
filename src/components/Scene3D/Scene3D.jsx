@@ -20,7 +20,6 @@ export default function Scene3D() {
 
     reader.onload = function (event) {
       ArrayButterToUint(event.target.result).then(function (result) {
-        console.log(result)
         setFile(result)
       })
     }
@@ -30,13 +29,25 @@ export default function Scene3D() {
 
   return (
     <Holder onDragOver={onDragOver} onDrop={onDrop}>
+      {!file && <Status>Drag and drop a zip of glb, gltf and fbx</Status>}
       <Viewer3D file={file} />
     </Holder>
   )
 }
 
 const Holder = styled.div`
+  position: relative;
   flex: 1;
   height: 100%;
   background-color: #212121;
+`
+
+const Status = styled.p`
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  color: #e2e2e2;
+  font-size: 1.5em;
 `
