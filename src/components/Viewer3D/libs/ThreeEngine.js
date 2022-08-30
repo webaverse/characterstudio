@@ -474,64 +474,7 @@ export default class ThreeEngine {
   /**
    * @param {*} scene
    */
-  detectGenerator(scene) {
-    if (!scene.userData?.asset) {
-      return
-    }
-
-    const generator =
-      scene.userData?.asset?.generator ?? "failed to detect generator"
-
-    if (generator.includes("CLO")) {
-      //Clo3D
-      this.storeInterface.setSunInfo({
-        enabled: true,
-        intensity: 2,
-        color: "#FFFDEC",
-      })
-      this.storeInterface.setFirstEmbientInfo({
-        enabled: true,
-        intensity: 1,
-        color: "#ffe7df",
-      })
-      this.storeInterface.setSecondEmbientInfo({
-        enabled: true,
-        intensity: 1,
-        color: "#ffe7df",
-      })
-
-      this.storeInterface.setCurrentExposure(1)
-    } else if (generator.includes("browzwear")) {
-      //Browzwear
-      this.storeInterface.setSunInfo({
-        enabled: true,
-        intensity: 6,
-        color: "#FFFDEC",
-      })
-      this.storeInterface.setFirstEmbientInfo({
-        enabled: true,
-        intensity: 10,
-        color: "#ffe7df",
-      })
-      this.storeInterface.setSecondEmbientInfo({
-        enabled: true,
-        intensity: 10,
-        color: "#ffe7df",
-      })
-
-      this.storeInterface.setCurrentExposure(1.5)
-    }
-
-    this.storeInterface.setGeneratorInfo(scene.userData?.asset)
-  }
-
-  /**
-   * @param {*} scene
-   */
   loadScene(scene) {
-    //Detect 3D Generator
-    this.detectGenerator(scene)
-
     //Parse the scene
     const matList = []
     this.meshes = []
