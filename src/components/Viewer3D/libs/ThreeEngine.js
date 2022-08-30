@@ -488,7 +488,7 @@ export default class ThreeEngine {
 
         let idx = matList.findIndex(mat => mat.label === child.material.name)
 
-        this.changeMaterial(child)
+        // this.changeMaterial(child)
 
         //Compare of material props
         if (idx === -1) {
