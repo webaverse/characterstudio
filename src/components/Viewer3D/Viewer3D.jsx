@@ -39,13 +39,7 @@ export default function Viewer3D({ file }) {
   const pressedKey = useStore(state => state.pressedKey)
   const setPressedKey = useStore(state => state.setPressedKey)
 
-  const setOpenInsertPrintDialog = useStore(
-    state => state.setOpenInsertPrintDialog,
-  )
-
   const currentPrintData = useStore(state => state.currentPrintData)
-
-  const setGeneratorInfo = useStore(state => state.setGeneratorInfo)
 
   //Three Engine's Store Interface to only set store state
   const storeInterface = {
@@ -55,7 +49,6 @@ export default function Viewer3D({ file }) {
     setSelectedGroupNodes,
     setPressedKey,
     setCurrentExposure,
-    setGeneratorInfo,
     setSunInfo,
     setFirstEmbientInfo,
     setSecondEmbientInfo,
@@ -80,13 +73,6 @@ export default function Viewer3D({ file }) {
       icon: "",
       command: () => {
         setSelectedGroupNodes([])
-      },
-    },
-    {
-      label: "Insert a print",
-      icon: "",
-      command: () => {
-        setOpenInsertPrintDialog(true)
       },
     },
     {

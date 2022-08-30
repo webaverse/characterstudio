@@ -561,6 +561,7 @@ export default class ThreeEngine {
         this.meshes.push(child)
       }
     })
+    console.log(matList)
     this.storeInterface.setGroupModel(matList)
     this.rootModel.add(scene)
 
